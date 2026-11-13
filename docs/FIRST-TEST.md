@@ -1,6 +1,6 @@
 # Bill: setup and first test
 
-This preview is intended for an existing PiDP-1 installation with the modified emulator/device interfaces described below. This is v4 with read-only named Microtape loading. It does not install or reconfigure the emulator. Phillip has tested it on his Pi; a second-machine compatibility test is the next step.
+This preview is intended for an existing PiDP-1 installation with the modified emulator/device interfaces described below. This is v6 with read-only named Microtape loading, an on-screen file picker, and autonomous loading indicators. It does not install or reconfigure the emulator. Phillip has tested it on his Pi; a second-machine compatibility test is the next step.
 
 ## Required setup
 
@@ -61,3 +61,11 @@ The full source is included. Start reading with `docs/CODE-TOUR.md`; comments be
 After the drum checks, halt the CPU and run `make run-tape`. This validates and selects the supplied image on drive 8 with write-locking, preserving other drive assignments. Allow time for the loading scene; the first live Apollo run on Phillip's Pi took about 40 seconds with the final chunked loader. The top-right label should read `TAPE 8 APOLLO11`, status should report source tape, stage 9, fault 0 and no FFT overflows. Analysis then uses RAM and the tape remains stopped.
 
 Check hold/step/gain as before. Halt and use `make run` to return to the unchanged drum source. See `docs/MICROTAPE.md` for preparation, the 11-second RAM limit, error recovery and changing names (which requires an assembler rebuild).
+
+## Try the on-screen file picker (v5)
+
+While running in tape mode, left-click a visible stroke of **LOAD FILE** at the upper right. The actual tape directory appears. Click a filename, release for at least a quarter second, and click **LOAD**. TWOTONE should show the two calibration peaks; CHANGING should show its changing sequence. Reopen the picker, select another file, then **CANCEL**: the current recording should resume. See [FILE-PICKER.md](FILE-PICKER.md) for pages, full filenames, error recovery and a live screenshot. No rebuild is needed for these selections.
+
+## Check loading feedback (v6)
+
+During a tape load, the line beside READING MICROTAPE should rotate even while a seek blocks the CPU. DATA BLOCKS starts at 000 / --- until the header is validated, then counts successful reads in steps of four. Apollo finishes at 144 / 144; either supplied calibration finishes at 016 / 016. The final checksum/padding checks still precede FFT analysis. See [LOADING.md](LOADING.md) for the exact meaning of the count and a live clip.

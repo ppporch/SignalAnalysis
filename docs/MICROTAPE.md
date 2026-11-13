@@ -1,6 +1,6 @@
 # Read-only Microtape recordings
 
-Version 4 adds named recording loading using Bill's FILESYSTEM/MICROTAPE 2.1 library. The PDP-1 mounts the filesystem, opens the selected file and reads it through the emulated Type 550 into extended RAM. It validates the complete recording before starting the unchanged FFT and power calculation. No tape I/O takes place during analysis.
+Version 4 adds named recording loading using Bill's FILESYSTEM/MICROTAPE 2.1 library. The PDP-1 mounts the filesystem, opens the selected file and reads it through the emulated Type 550 into extended RAM. It validates the complete recording before starting the unchanged FFT and power calculation. No tape I/O takes place during FFT analysis. Version 5 adds a modal on-screen file picker; directory/loading operations pause analysis.
 
 The first supplied image, `samples/SignalStation.mtp`, contains three read-only files:
 
@@ -23,11 +23,13 @@ make run-tape
 
 The launcher validates/extracts the selected file with the host `mtfs` tool first, snapshots core, then selects the image on the configured drive with `,locked` in `microtapes.txt`. It preserves other drive assignments and saves the old assignment file under `snapshots/` before changing it. It refuses to replace a drive assigned to another image. It then loads the tape-start binary. All tape movement and sample loading are performed by the PDP-1 program, not by a host memory upload.
 
-A paced looping `LOADING APOLLO11` scene refreshes without interrupts while the tape is read. An early single-read prototype took approximately 15 seconds; the final chunked loader deliberately spends longer to recover occasional missed transport words without repeating the whole recording. Its verified live Apollo load took about 40 seconds, including the first FFT. Actual time depends on tape position and retries. Allow up to three minutes before the launcher declares a timeout. A new run starts from the beginning; it reloads the recording rather than trusting samples left in RAM.
+A paced autonomous `READING MICROTAPE` scene refreshes without interrupts while the tape is read. Version 6 adds a rotating line and a completed data-block counter; see [LOADING.md](LOADING.md). An early single-read prototype took approximately 15 seconds; the final chunked loader deliberately spends longer to recover occasional missed transport words without repeating the whole recording. Its verified live Apollo load took about 40 seconds, including the first FFT. Actual time depends on tape position and retries. Allow up to three minutes before the launcher declares a timeout. A new run starts from the beginning; it reloads the recording rather than trusting samples left in RAM.
 
 The ordinary controls remain: Switch 1 run/hold, Switch 2 next frame, Switch 3 X4/X64 power gain. The source label shows the tape drive and recording. Track/frame labels refer to logical seconds and their sixteen FFT frames; the tape stays stopped during analysis. The last logical second is zero-padded as in the drum version.
 
-To select another supplied recording, halt first:
+For runtime selection, use **LOAD FILE**, select a name, release briefly, then **LOAD**. See [FILE-PICKER.md](FILE-PICKER.md) for paging, cancellation and recovery. No assembler rebuild is needed for an on-screen choice.
+
+To change the startup default instead, halt first:
 
 ```sh
 python3 tape.py configure --name CHANGING

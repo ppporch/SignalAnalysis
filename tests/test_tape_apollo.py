@@ -32,6 +32,7 @@ def main():
         assert hashlib.sha256(image.read_bytes()).hexdigest()==before
         assert 'drum_reads=0 ' in result.stdout,result.stdout
     report={'real_type550':True,'loaded_samples_checked':36864,'oracle_frames':146,'all_nine_RAM_fields_checked':True,'padding_and_wrap_checked':True,'no_drum_reads':True,'image_unchanged':True,'diagnostics':diag,'metrics':result.stdout.strip()}
+    assert mem[sy['l_loaded']]==144 and mem[sy['l_total']]==144
     text=json.dumps(report,indent=2)+'\n';(ROOT/'tests/tape-apollo-results.json').write_text(text);print(text,end='')
 
 

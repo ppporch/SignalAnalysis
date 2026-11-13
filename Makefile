@@ -5,10 +5,10 @@ FS_DEPS := $(wildcard $(PDP1_ROOT)/Am1Includes/FILESYSTEM/*.ah $(PDP1_ROOT)/Am1I
 .PHONY: all check run live-status tables drum-status drum-image drum-changing drum-pick drum-restore
 all: workstation.rim workstation-tape.rim
 
-workstation.rim: workstation.am1 state.ac ui-state.ac kernel.ac frontend.ac display.ac tape-loader.ac $(FS_DEPS) generated/tape-config.ac generated/twiddles.ac generated/bitrev.ac generated/scene.ac
+workstation.rim: workstation.am1 state.ac ui-state.ac kernel.ac frontend.ac display.ac tape-loader.ac picker.ac loading.ac generated/loading-animation.ac generated/picker-glyphs.ac $(FS_DEPS) generated/tape-config.ac generated/twiddles.ac generated/bitrev.ac generated/scene.ac
 	$(AM1) -d -S workstation.am1
 
-generated/twiddles.ac generated/bitrev.ac generated/scene.ac &: generate_tables.py generated/tape-config.json
+generated/twiddles.ac generated/bitrev.ac generated/scene.ac generated/picker-glyphs.ac generated/loading-animation.ac &: generate_tables.py generated/tape-config.json
 	python3 generate_tables.py
 
 tables:
@@ -38,7 +38,7 @@ drum-pick:
 drum-restore:
 	python3 drum.py --root "$(PDP1_ROOT)" restore
 
-workstation-tape.rim: workstation.am1 state.ac ui-state.ac kernel.ac frontend.ac display.ac tape-loader.ac $(FS_DEPS) generated/tape-config.ac generated/twiddles.ac generated/bitrev.ac generated/scene.ac
+workstation-tape.rim: workstation.am1 state.ac ui-state.ac kernel.ac frontend.ac display.ac tape-loader.ac picker.ac loading.ac generated/loading-animation.ac generated/picker-glyphs.ac $(FS_DEPS) generated/tape-config.ac generated/twiddles.ac generated/bitrev.ac generated/scene.ac
 	cp workstation.am1 workstation-tape.am1
 	$(AM1) -d -S -DSAW_TAPE workstation-tape.am1
 
@@ -52,3 +52,11 @@ test:
 
 manifest:
 	python3 update_manifest.py
+
+# FunStuff's parent clean target calls each program's clean target.
+# Preserve shipped programs/tables; remove only optional test products/listings.
+.PHONY: clean
+clean:
+	rm -f *.lst *.map core.rim core.sym probe.rim probe.sym
+	rm -f workstation-tape.am1 workstation-test.* workstation-sequence.* workstation-wav-test.* workstation-tape-test.* workstation-tape-sequence.*
+	rm -f tests/cpu_runner tests/frontend_runner tests/wav_runner tests/tape_runner
