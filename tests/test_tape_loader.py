@@ -4,7 +4,7 @@ import hashlib,json,os,re,struct,subprocess,sys,tempfile
 from pathlib import Path
 from test_core import ROOT,tape_memory,write_mem,read_mem,decode,reference
 sys.path.insert(0,str(ROOT))
-from tape import from_drum,make_image,validate_recording
+from tape import filesystem_tool, from_drum,make_image,validate_recording
 from drum import calibration_image
 
 
@@ -20,9 +20,10 @@ def main():
     memory,entry=tape_memory(ROOT/'workstation-tape-test.rim')
     sy={f[2]:int(f[0],8) for line in (ROOT/'workstation-tape-test.sym').read_text().splitlines()
         if len(f:=line.split())==4 and re.fullmatch('[0-7]{6}',f[0])}
+    tool=filesystem_tool()
     with tempfile.TemporaryDirectory(prefix='saw-mt-') as td:
         p=Path(td);source=p/'cal.drm';source.write_bytes(calibration_image())
-        image=p/'t.img';make_image(image,[('APOLLO11',source)],Path('/opt/pidp1-mods/bin/mtfs'))
+        image=p/'t.img';make_image(image,[('APOLLO11',source)],tool)
         code=p/'code';patch=p/'patch';out=p/'out';dummy=p/'unused.drm';dummy.write_bytes(calibration_image())
         write_mem(code,memory)
         def run(name='APOLLO11',path=image,extra=None):
@@ -63,8 +64,8 @@ def main():
                 data[12]=0;data[12]=(-sum(data[:256]))%((1<<18)-1)
             words=p/(label+'.words');words.write_bytes(struct.pack(f'<{len(data)}I',*data))
             test_image=p/(label+'.img')
-            subprocess.run(['/opt/pidp1-mods/bin/mtfs','-i',str(test_image)],check=True)
-            subprocess.run(['/opt/pidp1-mods/bin/mtfs','-a','-n','APOLLO11','-r','-f','words','-s',str(words),str(test_image)],check=True)
+            subprocess.run([str(tool),'-i',str(test_image)],check=True)
+            subprocess.run([str(tool),'-a','-n','APOLLO11','-r','-f','words','-s',str(words),str(test_image)],check=True)
             got,_=run(path=test_image)
             assert got[sy['fault']]==expected_fault and got[sy['done']]==0,(label,got[sy['fault']],got[sy['t_stage']])
             errors.append(label)

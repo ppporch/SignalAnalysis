@@ -23,7 +23,7 @@ core.rim: core.am1 state.ac kernel.ac generated/twiddles.ac generated/bitrev.ac
 tests/cpu_runner: tests/cpu_runner.c $(PDP1_ROOT)/src/pdp1/pdp1.o
 	$(CC) $(CFLAGS) -I$(PDP1_ROOT)/src/pdp1 -I$(PDP1_ROOT)/src/common -o $@ $< $(PDP1_ROOT)/src/pdp1/pdp1.o -lm
 
-test: all test-drum test-frontend test-gain test-refresh test-changing test-wav test-tape test-picker test-loading
+test: all test-drum test-frontend test-gain test-refresh test-changing test-wav test-tape test-picker test-loading test-host-tools
 	python3 tests/test_core.py
 
 test-drum:
@@ -130,3 +130,11 @@ test-picker: workstation-tape.rim tests/tape_runner
 .PHONY: test-loading
 test-loading: workstation-tape.rim
 	python3 tests/test_loading.py
+
+.PHONY: test-host-tools
+test-host-tools:
+	python3 tests/test_host_tools.py
+
+.PHONY: test-filesystem-compat
+test-filesystem-compat:
+	PDP1_ROOT="$(PDP1_ROOT)" python3 tests/test_filesystem_compat.py

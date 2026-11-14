@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Guest pen ISR + modal picker + real read-only Type 550, isolated from live Pi."""
-import hashlib,json,os,re,struct,subprocess,tempfile
+import hashlib,json,os,re,struct,subprocess,tempfile,sys
 from pathlib import Path
 from test_core import ROOT,tape_memory,write_mem,read_mem,decode,reference
+sys.path.insert(0,str(ROOT))
+from tape import filesystem_tool,make_image
 
 
 def main():
@@ -11,6 +13,7 @@ def main():
     sy={f[2]:int(f[0],8) for line in (ROOT/'workstation-tape.sym').read_text().splitlines()
         if len(f:=line.split())==4 and re.fullmatch('[0-7]{6}',f[0])}
     before=hashlib.sha256(image.read_bytes()).hexdigest()
+    tool=filesystem_tool()
     with tempfile.TemporaryDirectory(prefix='saw-picker-') as td:
         d=Path(td);code=d/'code';patch=d/'patch';out=d/'out';script=d/'pen'
         write_mem(code,memory);write_mem(patch,{})
@@ -44,15 +47,12 @@ def main():
         text=''.join(chr((w>>shift)&0x1ff) for w in words for shift in (9,0)).rstrip('\0 ')
         assert text=='TWOTONE',repr(text)
         # More than one page, full 9-character names, and a foreign data file.
-        from sys import path as searchpath
-        searchpath.insert(0,str(ROOT))
-        from tape import make_image
         fixture=d/'pages.mtp'
         calibration=ROOT/'samples/SignalAnalysis.drm'
-        make_image(fixture,[('APOLLO11',calibration)]+[(f'FILE{n:02d}',calibration) for n in range(1,9)]+[('NINECHARS',calibration)],Path('/opt/pidp1-mods/bin/mtfs'))
+        make_image(fixture,[('APOLLO11',calibration)]+[(f'FILE{n:02d}',calibration) for n in range(1,9)]+[('NINECHARS',calibration)],tool)
         bad=d/'bad.words';bad.write_bytes(struct.pack('<256I',*([0]*256)))
         fixture.chmod(0o644)
-        subprocess.run(['/opt/pidp1-mods/bin/mtfs','-a','-n','BADFILE','-r','-f','words','-s',str(bad),str(fixture)],check=True)
+        subprocess.run([str(tool),'-a','-n','BADFILE','-r','-f','words','-s',str(bad),str(fixture)],check=True)
         fixture.chmod(0o444)
         fixture_before=hashlib.sha256(fixture.read_bytes()).hexdigest()
         events=opened+[

@@ -2,7 +2,7 @@
 
 A signal-analysis workstation that runs a **256-point fixed-point FFT on the emulated PDP-1** and draws the waveform and power spectrum with a Type 340 display. Recordings come from a Type 23 drum image or named files on a Type 550 Microtape.
 
-Created by **Phillip Porch** for the PiDP-1, using [wjenh/pidp1-mods](https://github.com/wjenh/pidp1-mods). The current development preview is **v6**, with an on-screen Microtape file picker, an autonomous loading spinner, and a data-block counter.
+Created by **Phillip Porch** for the PiDP-1, using [wjenh/pidp1-mods](https://github.com/wjenh/pidp1-mods). The current development preview is **v6.1** (host-tool compatibility update), with an on-screen Microtape file picker, an autonomous loading spinner, and a data-block counter.
 
 ![Signal Station displaying the Apollo recording](docs/signal-station.png)
 
@@ -42,7 +42,7 @@ The v4 build was tested with pidp1-mods revision [`a81ef4b`](https://github.com/
 - Hardware multiply/divide enabled.
 - Type 340 display and Type 342 character support, with the display viewer open.
 - BBN clock at IOT 032 and sequence-break support.
-- Type 23 drum support for drum mode; Type 550 Microtape support and `bin/mtfs` for tape mode.
+- Type 23 drum support for drum mode; Type 550 Microtape support and `bin/fstool` for tape mode (`bin/mtfs` is supported on older installations).
 - `core1D` or `all1D` enabled for the filesystem library. The numerical kernel itself retains its original-instruction-set implementation.
 - Local command port **1040**, compatible AD1 debugger port **1044**, and the installed AM1-aware `bin/fastload`.
 
@@ -61,9 +61,9 @@ make check
 
 For a separate installation from the standalone repository, clone it into a new `FunStuff/SignalAnalysis` directory. Do not nest another checkout inside an existing station installation.
 
-The archived [v4 ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-12-v4.zip) predates the on-screen file picker. Use this source tree or the [v6 preview ZIP](dist/SignalAnalysis-preview-2026-11-13-v6.zip) for the picker and loading indicators.
+The archived [v4 ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-12-v4.zip) predates the on-screen file picker. The [v6 preview ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-13-v6.zip) includes the picker and loading indicators but predates fstool discovery. Use the current source tree or the [v6.1 preview ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-13-v6.1.zip) for the host-tool update.
 
-`make check` verifies the shipped file hashes and sample-image formats without operating the emulator. When the installed `mtfs` is available, it also extracts all three supplied tape recordings and compares them with the corresponding drum samples. Run this integrity check before editing or rebuilding. Developers can use `make manifest` to refresh hashes for reviewed, staged files before committing changes.
+`make check` verifies the shipped file hashes and sample-image formats without operating the emulator. When the installed `fstool` (or legacy `mtfs`) is available, it also extracts all three supplied tape recordings and compares them with the corresponding drum samples. Run this integrity check before editing or rebuilding. Developers can use `make manifest` to refresh hashes for reviewed, staged files before committing changes.
 
 For a different installation root, pass `PDP1_ROOT=/your/pidp1-mods` to make. Keep the `FunStuff/SignalAnalysis` layout. The current debugger/command ports remain fixed at 1044/1040.
 
@@ -75,6 +75,8 @@ Turn power on, halt the CPU, finish any debugger stepping/breakpoint session, an
 cd /opt/pidp1-mods/FunStuff/SignalAnalysis
 make run-tape
 ```
+
+The host tools prefer `bin/fstool` in the selected installation and fall back to `bin/mtfs` only when fstool is unavailable. Packing also accepts `--root` for another installation or `--tool` for an explicit executable. A failed fstool operation is reported directly.
 
 The default is **drive 8 / APOLLO11**. Drive 8 must be free or already assigned to this image. The launcher validates the selected file, saves a core snapshot, backs up tape assignments before changing them, and adds a write-locked assignment while preserving other drives. The guest loads the recording through the real emulated Type 550 into RAM. It issues no image-creation mount, format or write calls.
 

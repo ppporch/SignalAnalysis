@@ -5,7 +5,7 @@ from pathlib import Path
 from test_core import ROOT,tape_memory,write_mem,read_mem,decode,reference
 import sys
 sys.path.insert(0,str(ROOT))
-from tape import make_image
+from tape import filesystem_tool, make_image
 
 
 def main():
@@ -13,8 +13,9 @@ def main():
     sy={f[2]:int(f[0],8) for line in (ROOT/'workstation-tape-sequence.sym').read_text().splitlines()
         if len(f:=line.split())==4 and re.fullmatch('[0-7]{6}',f[0])}
     source=ROOT/'samples/Apollo11.drm';words=struct.unpack('<131072I',source.read_bytes())
+    tool=filesystem_tool()
     with tempfile.TemporaryDirectory(prefix='saw-mt-apollo-') as td:
-        p=Path(td);image=p/'speech.img';make_image(image,[('APOLLO11',source)],Path('/opt/pidp1-mods/bin/mtfs'))
+        p=Path(td);image=p/'speech.img';make_image(image,[('APOLLO11',source)],tool)
         code=p/'code';patch=p/'patch';out=p/'out';trace=p/'trace';write_mem(code,memory);write_mem(patch,{})
         before=hashlib.sha256(image.read_bytes()).hexdigest()
         env=dict(os.environ,SAW_TEST_TAPE_IMAGE=str(image),SAW_GAIN_MODE='1',SAW_STOP_ON_FAULT='1',SAW_FRAME_TRACE=str(trace),SAW_FRAME_COUNTER_ADDR=f"{sy['nframes']:o}")

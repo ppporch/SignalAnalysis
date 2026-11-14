@@ -9,7 +9,7 @@ Tested base: `pidp1-mods` revision `a81ef4b99786ff04624ae8529c2bc6b826f767c1`, w
 - Linux Pi, Python 3, and read/write permission for the PiDP-1 installation and access to its emulator process information.
 - Extended memory: use the full 64K-word setup for the tape loader. Fields 5–15 hold the recording.
 - Hardware multiply/divide enabled (Type 10 arithmetic). The numerical kernel uses original instructions, but the filesystem requires `core1D` or `all1D` enabled.
-- Type 550 Microtape support and `bin/mtfs` from the inspected filesystem revision, if using tape mode. Drive 8 must be free or already assigned to the supplied tape.
+- Type 550 Microtape support and `bin/fstool` (or legacy `bin/mtfs`) from the installed filesystem revision, if using tape mode. Drive 8 must be free or already assigned to the supplied tape.
 - Type 23 drum enabled at IOTs 061–063, with the installation's 32-track, 4096-word, little-endian 32-bit-slot image format.
 - BBN timesharing clock enabled at IOT 032 for its 1 ms counter. Display refresh uses sequence-break channel 0 (single-channel or SBS16); the program installs its own handler and disables other channels at startup.
 - Type 340 display enabled at IOTs 015–017, with Type 342 character support and the existing display viewer open.
