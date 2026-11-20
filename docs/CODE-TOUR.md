@@ -10,6 +10,7 @@ Start with `workstation.am1`. It lays out the memory fields and runs the main lo
 | `kernel.ac` | Bit-reversed input loading, radix-2 FFT and full-product power |
 | `state.ac` | Numerical scratch words; the kernel is non-reentrant |
 | `frontend.ac` | Directory/track validation, frame acquisition and construction of display lists |
+| `p1gl/vector_sink.ac` | Non-owning P1GL unit-vector compiler, called through the frontend's bounded EMIT sink |
 | `ui-state.ac` | Acquisition and scene-building scratch/state |
 | `tape-loader.ac`, `tape.py` | Read-only guest loading, recording validation, tape preparation and configuration |
 | `loading.ac` | Autonomous Type 340 spinner, completed data-block counter and decimal formatting |
@@ -44,7 +45,22 @@ The interrupt handler has separate scratch and never calls those helpers. The se
 
 The BBN millisecond counter times successive display completions, accounting for its 60000 ms wrap. Status exposes last/min/max and a count over 25 ms. This is separate from the much slower rate of analyzing new 62.5 ms recordings. A 1 ms run-clock measurement does not establish a hard wall-clock latency guarantee.
 
-The Type 340's vector BRM count grows in powers of two, from 3 to 7 bits. A unit-spaced slope with magnitude 64 takes 127 pulses, nearly twice a magnitude-63 slope. This explains why a list's word count alone does not predict scan time. The optimized frontend keeps short waveform segments at unit spacing. For 16–31-pixel rises it draws the vertical bulk with spacing 4; for larger rises it uses spacing 8. A short unit-spaced tail reaches the exact next sample endpoint. Every sample remains represented; intermediate dots on steep slopes are coarser. Faint horizontal guides use spacing 4. Spectrum bars use spacing 4 for heights of at least 16 pixels and unit spacing for the remainder, retaining their exact calibrated/clipped heights. A 256-pixel bar is split into 63+1 coarse steps to avoid the BRM boundary at 64. Its initial positioning header also selects spacing, avoiding a redundant parameter word per bar and keeping list size bounded.
+The v6.2 frontend uses scale zero for every visible waveform, spectrum and
+guide vector. P1GL's non-owning emitter consumes signed relative deltas and
+writes bounded native vector words through EMIT. Waveform vectors stay in VECTOR
+mode between sample endpoints and return to PARAMETER only at the last sample;
+this avoids a redundant mode word per segment. Nonaxial spans larger than 127
+are split into balanced integer halves. Axial bars use greedy 127-unit chunks,
+so a saturated 256-pixel bar is 127+127+2. Exact incoming sample endpoints and
+weighted/clipped bar heights are unchanged.
+
+The emitter has dedicated same-field scratch and no display IOTs. It therefore
+fits the existing two-buffer/ISR ownership model without linking P1GL's blocking
+frame manager or its banked vector font. The full-resolution worst-case scene
+with all bars saturated uses 1,965 of 1,984 words in tape mode. Capacity remains
+bounded by EMIT; no display list or sample memory allocation was enlarged.
+Nominal scan-time estimates and live timings are diagnostic, not a hard refresh
+budget. Full-resolution geometry is preferred over wider dot spacing.
 
 ## Errors, checks and future changes
 

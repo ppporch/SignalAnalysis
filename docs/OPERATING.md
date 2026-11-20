@@ -12,7 +12,7 @@ Start with [Bill's setup and test guide](FIRST-TEST.md). Read [Microtape loading
 | 2 | Rearm single-frame stepping | Advance once while Switch 1 is off; turn off before another step |
 | 3 | X4 spectrum gain | X64 gain for quiet peaks |
 
-Gain changes redraw a held frame without changing its FFT or measured power. Strong peaks clip at the plot ceiling. The waveform gain is fixed. Long lines use wider beam-dot spacing to shorten the scan; all 256 sample endpoints and exact bar heights are preserved. The faint horizontal guides are dotted. The display label identifies the spectrum gain. The viewer window may still have a Type 30 title while the program uses the Type 340 controller.
+Gain changes redraw a held frame without changing its FFT or measured power. Strong peaks clip at the plot ceiling. The waveform gain is fixed. Waveform segments, spectrum bars and horizontal guides use unit-spaced native vectors; all 256 sample endpoints and exact bar heights are preserved. Busy frames can take longer to redraw than the earlier coarse display. The display label identifies the spectrum gain. The viewer window may still have a Type 30 title while the program uses the Type 340 controller.
 
 ## Normal operation
 

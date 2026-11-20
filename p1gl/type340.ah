@@ -1,0 +1,14 @@
+#ifndef P1GL_TYPE340
+#define P1GL_TYPE340
+// Native Type 340 words, matching Bill's TYPE340/type340cmds.ah.
+#define T_POINT (1 << 0d13)
+#define T_VECTOR (4 << 0d13)
+#define T_CHARACTER (3 << 0d13)
+#define T_Y 0200000
+#define T_SHOW 02000
+#define T_VISIBLE 0200000
+#define T_END 0400000
+#define T_HALT 02000
+#define T_PARAMETER (010000 | 0100 | 015) // scale(0), intensity(5), lpoff
+#define T_SETUP (T_PARAMETER | 0600 | T_POINT) // dual charset explicitly
+#endif

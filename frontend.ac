@@ -7,7 +7,6 @@
 // gaincheck rebuilds from retained waveform/power without counting a new FFT.
 // EMIT bounds-checks every word. The ISR independently refreshes the active list.
 // The CPU never writes an active list; display_next acknowledges the handoff.
-#define VWORD(dx,tail) sal 8s; ior segdir; ior [visible deltax(dx) tail]; EMIT
 #define EMIT dac emitv; lac dest; sad limit; jmp listfull; lac emitv; eem; dac i dest; lem; idx dest; jsp svc
 
 // Common initialization is also callable by the read-only tape loader.
@@ -331,6 +330,7 @@ highlabel,law gain64
         lac [gain64end-gain64]
 gainlabel,dac ncopy
         jsp template
+        // Unit-spaced P1GL vectors; the CPU only builds the inactive list.
         lac [scale(0) intensity(4) lpoff next(point)]
         EMIT
         law waveform
@@ -338,11 +338,13 @@ gainlabel,dac ncopy
         dzm bindex
         lac [0d128]
         dac xpos
+        law 3
+        dac p1gl_vdx
 waveplot,lac i src
         sar 1s
         dac halfval
         sar 1s
-        add halfval              // 3/4 signal amplitude, then scale to screen units
+        add halfval
         sar 9s
         add [0d768]
         dac cury
@@ -353,59 +355,23 @@ waveplot,lac i src
         ior [y(0) next(point)]
         EMIT
         lac xpos
-        ior [show next(parameter)]
+        ior [show next(vector)]
         EMIT
         jmp wavedone
 wavevector,lac cury
         sub lasty
-        dac mag
-        dzm segdir
-        sma
-        jmp positive
-        cma
-        dac mag
-        lac [down]
-        dac segdir
-// The 340 shortens its BRM counter to 3..7 bits. At unit spacing a 64-pixel
-// rise costs 127 pulses; that cost repeats for every steep sample-to-sample line.
-// Keep short slopes at unit spacing. For |dy| >= 16, draw the vertical bulk at
-// spacing 4 (16..31 pixels) or 8 (32+), then return to unit spacing for
-// the exact (3, dy mod spacing) endpoint. The remainder fits a 3-bit BRM count.
-// All 256 samples remain endpoints; only the dots BETWEEN endpoints are coarser.
-positive,lac mag
-        sub [0d16]
-        sma
-        jmp fastwave
-        lac [scale(0) next(vector)]
-        EMIT
-        lac mag
-        VWORD(3,end)
-        jmp wavedone
-fastwave,lac mag
-        sub [0d32]
-        sma
-        jmp widewave
-        lac [scale(2) next(vector)]
-        EMIT
-        lac mag
-        sar 2s
-        VWORD(0,end)
-        lac mag
-        and [3]
-        dac quarter
-        jmp waveend
-widewave,lac [scale(3) next(vector)]
-        EMIT
-        lac mag
-        sar 3s
-        VWORD(0,end)
-        lac mag
-        and [7]
-        dac quarter
-waveend,lac [scale(0) next(vector)]
-        EMIT
-        lac quarter
-        VWORD(3,end)
+        dac p1gl_vdy
+        dzm p1gl_vtail
+        lac bindex
+        sad [0d255]
+        jmp wavelast
+        jmp waveemit
+wavelast,lac [end]
+        dac p1gl_vtail
+waveemit,jsp p1gl_vector
+        lac p1gl_vfault
+        sza
+        jmp baddisplay
 wavedone,lac cury
         dac lasty
         lac xpos
@@ -448,55 +414,22 @@ clipheight,lac [0d256]
 heightok,lac height
         sza i
         jmp nextbar
-        // Select spacing in the positioning header rather than emitting a
-        // redundant parameter after X. This saves one word per nonzero bar and
-        // keeps the worst list bound below the 1984-word allocation.
-        lac height
-        sub [0d16]
-        sma
-        jmp barwidehead
         lac [scale(0) intensity(5) next(point)]
-        jmp barhead
-barwidehead,lac [scale(2) intensity(5) next(point)]
-barhead,EMIT
+        EMIT
         lac [y(0d64) next(point)]
         EMIT
         lac xpos
         ior [next(vector)]
         EMIT
-// Bars use the same spacing optimization and retain the exact weighted/clipped
-// height. A 256-pixel bar is 63+1 coarse steps: one 64-step vector would double
-// the BRM count from 63 to 127 pulses, so this split saves a scan-time boundary.
-barseg, lac height
-        sub [0d16]
-        sma
-        jmp fastbar
+        dzm p1gl_vdx
         lac height
-        sal 8s
-        ior [visible end]
-        EMIT
-        jmp nextbar
-fastbar,lac height
-        sar 2s
-        sas [0d64]
-        jmp coarsebar
-        lac [visible deltay(0d63)]
-        EMIT
-        law 1
-coarsebar,sal 8s
-        ior [visible end]
-        EMIT
-        lac height
-        and [3]
-        sza i
-        jmp nextbar
-        dac quarter
-        lac [scale(0) next(vector)]
-        EMIT
-        lac quarter
-        sal 8s
-        ior [visible end]
-        EMIT
+        dac p1gl_vdy
+        lac [end]
+        dac p1gl_vtail
+        jsp p1gl_vector
+        lac p1gl_vfault
+        sza
+        jmp baddisplay
 nextbar,lac xpos
         add [6]
         dac xpos
@@ -598,3 +531,10 @@ baddisplay,law 4
 listfull,law 5
 failure,eem
         jmp i [faultstop:0]
+
+// Reuse P1GL's non-owning vector compiler. Its output goes through the same
+// bounds-checked field-2 writer; it never starts/stops the display or uses
+// the ISR's private scratch. The preceding caller sets VECTOR mode, scale 0.
+#define P1GL_VECTOR_EMIT EMIT
+#include "p1gl/vector_sink.ac"
+#undef P1GL_VECTOR_EMIT

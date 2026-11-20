@@ -1,0 +1,13 @@
+{
+  "checked_scenes": 146,
+  "sample_endpoints_checked": 37376,
+  "all_bars_and_coordinates_checked": true,
+  "max_list_words": 721,
+  "nominal_before_max_ms": 23.352,
+  "nominal_after_max_ms": 45.052,
+  "nominal_before_mean_ms": 15.09538698630137,
+  "nominal_after_mean_ms": 19.10155821917808,
+  "nominal_after_over_25ms": 36,
+  "all_visible_vectors_unit_spaced": true,
+  "timing_policy": "diagnostic; full-resolution geometry takes priority"
+}

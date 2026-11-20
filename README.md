@@ -2,7 +2,7 @@
 
 A signal-analysis workstation that runs a **256-point fixed-point FFT on the emulated PDP-1** and draws the waveform and power spectrum with a Type 340 display. Recordings come from a Type 23 drum image or named files on a Type 550 Microtape.
 
-Created by **Phillip Porch** for the PiDP-1, using [wjenh/pidp1-mods](https://github.com/wjenh/pidp1-mods). The current development preview is **v6.1** (host-tool compatibility update), with an on-screen Microtape file picker, an autonomous loading spinner, and a data-block counter.
+Created by **Phillip Porch** for the PiDP-1, using [wjenh/pidp1-mods](https://github.com/wjenh/pidp1-mods). The current development preview is **v6.2** (continuous full-resolution vectors using P1GL), with an on-screen Microtape file picker, an autonomous loading spinner, and a data-block counter.
 
 ![Signal Station displaying the Apollo recording](docs/signal-station.png)
 
@@ -61,7 +61,7 @@ make check
 
 For a separate installation from the standalone repository, clone it into a new `FunStuff/SignalAnalysis` directory. Do not nest another checkout inside an existing station installation.
 
-The archived [v4 ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-12-v4.zip) predates the on-screen file picker. The [v6 preview ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-13-v6.zip) includes the picker and loading indicators but predates fstool discovery. Use the current source tree or the [v6.1 preview ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-13-v6.1.zip) for the host-tool update.
+The archived [v4 ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-12-v4.zip) predates the on-screen file picker. The [v6 preview ZIP](https://github.com/ppporch/SignalAnalysis/blob/main/dist/SignalAnalysis-preview-2026-11-13-v6.zip) includes the picker and loading indicators but predates fstool discovery. The v6.1 archive contains the host-tool update. Use the current source tree for the v6.2 full-resolution display; old ZIPs retain their earlier rendering.
 
 `make check` verifies the shipped file hashes and sample-image formats without operating the emulator. When the installed `fstool` (or legacy `mtfs`) is available, it also extracts all three supplied tape recordings and compares them with the corresponding drum samples. Run this integrity check before editing or rebuilding. Developers can use `make manifest` to refresh hashes for reviewed, staged files before committing changes.
 
@@ -131,9 +131,9 @@ Status reports source, frame/track, fault and overflow counters, loader stage/re
 
 The arithmetic uses 17 fractional bits, one input guard shift and eight FFT stage shifts. Stored FFT output has gain X/512. Power retains the full products in two 17-bit limbs, with the correct DC/Nyquist endpoint weighting. The format and evaluation order are described in the [code tour](docs/CODE-TOUR.md) and [mathematical design](docs/signal-analysis-workstation.md).
 
-The Type 340 handler restarts scans independently of FFT progress and changes display buffers only at a stopped-frame boundary. Long waveform lines use wider beam-dot spacing, then an exact endpoint correction: **all 256 sample endpoints and exact bar heights remain represented**. Faint horizontal guides are dotted.
+The Type 340 handler restarts scans independently of FFT progress and changes display buffers only at a stopped-frame boundary. Waveform traces, spectrum bars, and horizontal guides now use **continuous unit-spaced Type 340 vectors**. A vendored P1GL vector emitter compiles bounded native segments while preserving **all 256 sample endpoints and exact calibrated bar heights**.
 
-The final v4 live check measured **12–26 ms** intervals, with one pass over 25 ms among 1840 completed passes in a 30-second observation. This is a measured run, not a hard real-time guarantee for every recording or host load.
+Earlier v4 timing measurements used the coarser rendering. Full-resolution rendering prioritizes clean geometry and may take longer on busy frames. Across 146 Apollo scenes, the nominal scan model averages 19.10 ms and peaks at 45.05 ms; these estimates exclude host scheduling and channel contention. Live measurements are recorded separately; no hard 25 ms guarantee is claimed.
 
 Microtape calls disable sequence breaks and can block for seconds, so tape access occurs only during startup, directory mounting, or modal loading. The autonomous loading scene refreshes during those calls; FFT analysis is paused. Reads are in 1024-word chunks, with at most five attempts for device-level bad-block/missed-word errors. The complete recording must still pass its length, checksum and zero-padding checks before any FFT starts. Invalid application data is not silently retried or analyzed.
 
@@ -173,3 +173,18 @@ Machine-specific snapshots, tape assignments, runtime journals and temporary tes
 The station uses Bill's [pidp1-mods](https://github.com/wjenh/pidp1-mods), its filesystem/Microtape includes, and the display-interrupt approach illustrated by Sketchpad. The Apollo example is credited to **NASA/JPL-Caltech**; its source and conversion details are in [audio/README.md](audio/README.md) and [samples/Apollo11.drm.json](samples/Apollo11.drm.json).
 
 See [LICENSE](LICENSE) for the repository's GNU GPL version 3 license.
+
+## v6.2 continuous-vector display
+
+The station already used the Type 340. This update removes wider intermediate
+beam-dot spacing from the waveform, spectrum bars and guides. Numeric FFT,
+power, gain calibration, sample data and file format are unchanged. P1GL is used
+through its small non-owning vector emitter in p1gl/, so the station keeps its
+interrupt-driven double buffering and existing memory allocation. No P1GL font
+bank or standalone frame manager is loaded.
+
+Run `make test` for the regression suite; `make -f Makefile.tests
+test-vector-quality` adds a deliberately crowded scene with alternating full-scale
+samples and all 129 bars saturated. The maximum tested tape layout is 1,965
+words in its 1,984-word buffer, with every waveform endpoint retained. See
+[display integration](docs/P1GL-VECTORS.md) and docs/validation/ for details.

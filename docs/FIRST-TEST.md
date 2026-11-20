@@ -54,7 +54,7 @@ Record the installed revision, what appears on screen, and the output of `make l
 
 To leave the test, halt the CPU. To restore the prior drum, run `make drum-restore` while stopped. Then load the program appropriate to that drum; the helper does not resume the previous software or restore saved core automatically.
 
-The full source is included. Start reading with `docs/CODE-TOUR.md`; comments beside `fastwave`, `fastbar` and the guide generator explain the scan-cost optimization and its dot-spacing tradeoff.
+The full source is included. Start reading with `docs/CODE-TOUR.md`; comments beside `waveemit`, the P1GL emitter and the guide generator explain the full-resolution vectors and display-buffer bounds.
 
 ## Try the named Microtape source
 

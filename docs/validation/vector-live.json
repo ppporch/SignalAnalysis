@@ -1,0 +1,109 @@
+{
+  "observed_utc": "2026-11-20T03:55:23.259184+00:00",
+  "start": {
+    "running": true,
+    "powered_on": true,
+    "pc": "000674",
+    "sense_switches_octal": "50",
+    "done": 1,
+    "fft_overflows": 0,
+    "fault": 0,
+    "track": 7,
+    "frame": 14,
+    "published_frames": 110,
+    "refresh_starts": 11055,
+    "source": "drum",
+    "tape_stage": 0,
+    "tape_status": 0,
+    "tape_read_retries": 0,
+    "tape_data_blocks": {
+      "read": 0,
+      "total": 0
+    },
+    "tape_filename": "APOLLO11",
+    "file_picker": {
+      "p_modal": 0,
+      "p_count": 0,
+      "p_page": 0,
+      "p_selected": 0,
+      "p_error": 0,
+      "p_invalid": 0
+    },
+    "display_gain": 64,
+    "display_timing_ms": {
+      "last": 30,
+      "min": 12,
+      "max": 47,
+      "over_25ms": 1115,
+      "completed_passes": 11054
+    },
+    "active_list": "024000",
+    "largest_bins": [
+      {
+        "bin": 37,
+        "cps": 592,
+        "power_integer": 19890482
+      },
+      {
+        "bin": 46,
+        "cps": 736,
+        "power_integer": 18155549
+      }
+    ]
+  },
+  "end": {
+    "running": true,
+    "powered_on": true,
+    "pc": "014542",
+    "sense_switches_octal": "50",
+    "done": 1,
+    "fft_overflows": 0,
+    "fault": 0,
+    "track": 8,
+    "frame": 10,
+    "published_frames": 122,
+    "refresh_starts": 12076,
+    "source": "drum",
+    "tape_stage": 0,
+    "tape_status": 0,
+    "tape_read_retries": 0,
+    "tape_data_blocks": {
+      "read": 0,
+      "total": 0
+    },
+    "tape_filename": "APOLLO11",
+    "file_picker": {
+      "p_modal": 0,
+      "p_count": 0,
+      "p_page": 0,
+      "p_selected": 0,
+      "p_error": 0,
+      "p_invalid": 0
+    },
+    "display_gain": 64,
+    "display_timing_ms": {
+      "last": 28,
+      "min": 12,
+      "max": 47,
+      "over_25ms": 1308,
+      "completed_passes": 12075
+    },
+    "active_list": "024000",
+    "largest_bins": [
+      {
+        "bin": 32,
+        "cps": 512,
+        "power_integer": 29801434
+      },
+      {
+        "bin": 20,
+        "cps": 320,
+        "power_integer": 15303560
+      }
+    ]
+  },
+  "observation_seconds": 20,
+  "refresh_starts_delta": 1021,
+  "drum_sha256": "3b23f2e492969263b8abd93c06c7cdc18f2d70b24d1bc5f5618baeefd16a3b17",
+  "visual_capture": "Waveform, spectrum and guides inspected in live X11 capture; continuous connected geometry visible. Text remains native character mode."
+}

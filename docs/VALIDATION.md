@@ -1,4 +1,4 @@
-# Validation of the 10 November 2026 preview v3
+# Validation record
 
 The source and preassembled program in this package match the version running on Phillip's PiDP-1 with Type 23 acquisition and Type 340 display. Hardware/device interfaces have been tested on that installation; Bill's installation remains a compatibility test.
 
@@ -87,3 +87,54 @@ Live startup loading on the Pi visibly rotated during a wait with the counter st
 Eight host-selection tests pass: fstool preference, legacy fallback, non-executable preference handling, explicit path/PATH overrides, missing tools, installation isolation, no published image when a tool is absent, and no retry with mtfs after a real fstool error. The original six tape-format/drive-assignment tests also pass.
 
 On the Pi, Bill's fstool was built from the current official source and installed alongside the existing mtfs. Each utility packed a new temporary image containing all three sample recordings; both utilities extracted each writer's files byte-for-byte. Image hashes and read-only publishing were checked. Automatic packing/selection through a custom root and explicit mtfs override both passed. The affected CPU/Type-550 loader/error/retry tests, modal file-picker tests, and full 36,864-word/146-spectrum Apollo integration passed using fstool-created images. These tests use isolated media and do not operate the live station. Guest code, numerical arithmetic and preassembled binaries are unchanged.
+
+## v6.2 P1GL continuous vectors (19 November 2026)
+
+The existing Type 340 renderer now uses unit-spaced waveform segments, spectrum
+bars and guides. The shared P1GL vector_sink.ac emits through the frontend's
+bounded extended-memory EMIT sink; it does not replace the display ISR or the
+inactive-list handoff. Numeric code, calibration, storage format, memory-field
+allocation and user controls remain unchanged.
+
+The full regression suite passed, including frontend/gain/control, refresh and
+both SBS modes, core integer arithmetic, file/checksum error paths, Microtape
+loading, the file picker/loading indicators, host-tool isolation, fstool/mtfs
+compatibility and the 146-frame Apollo RAM/tape oracle. A high-gain raw-drum
+Apollo pass also checked all 146 FFT/power frames and all 37,376 display sample
+endpoints, bar heights and bounds. The source image remains unchanged.
+
+The adversarial geometry check combines alternating maximum signed samples with
+all 129 bars saturated. It uses 1,935 words (drum label) or 1,965 (tape label)
+in the existing 1,984-word list. All samples and bars retain their endpoints;
+all visible geometry is scale zero; numeric FFT/power words are unchanged.
+
+P1GL's emitter passed 4,496 displacement cases with a sink that clobbers AC,
+plus five invalid argument cases that must emit nothing. Captured words are
+visible native vectors, have seven-bit components, connect exactly, and apply
+END only to the last segment. Axial length 256 is 127+127+2. No display IOT is
+issued by the shared module itself.
+
+The nominal model on the same high-gain Apollo scenes changes mean/max from
+15.10/23.35 ms to 19.10/45.05 ms. Thirty-six of 146 dense scenes model above
+25 ms. This is diagnostic; full-resolution geometry is the priority. The model
+excludes scheduling, HSC contention and actual client rendering.
+
+The installed Pi build passed the 86-file package check. Live Apollo drum
+analysis remained running with fault 0 and FFT overflow 0. A 20-second
+observation completed 1,021 display starts; the run measured 12–47 ms display
+intervals. The waveform, spectrum and guides were inspected in an X11 capture
+and show continuous connected geometry. Native character text is unchanged.
+The active drum SHA256 remains
+3b23f2e492969263b8abd93c06c7cdc18f2d70b24d1bc5f5618baeefd16a3b17.
+The detailed status snapshots are in validation/vector-live.json. Installed
+source and binaries were backed up under snapshots before replacement.
+
+The same vector build was then launched in tape mode. APOLLO11 reached
+144/144 blocks and analysis with fault 0 and overflow 0, recovering one
+read retry. Phillip used LOAD FILE to select CHANGING; its 16/16 blocks
+loaded successfully and analysis resumed with no faults or overflows.
+
+Next session: consider P1GL vector-stroke text for the tape picker title,
+buttons and filenames. This is deferred design work; the current picker
+continues to use native character mode. Check field/list space before
+choosing font storage, since the full-size sample RAM fields are occupied.

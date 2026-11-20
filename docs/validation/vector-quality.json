@@ -1,0 +1,22 @@
+[
+  {
+    "source": "drum",
+    "words": 1935,
+    "capacity": 1984,
+    "spare": 49,
+    "waveform_endpoints": 256,
+    "saturated_spectrum_bars": 129,
+    "unit_spaced_visible_vectors": 1426,
+    "fft_and_power_unchanged": true
+  },
+  {
+    "source": "tape",
+    "words": 1965,
+    "capacity": 1984,
+    "spare": 19,
+    "waveform_endpoints": 256,
+    "saturated_spectrum_bars": 129,
+    "unit_spaced_visible_vectors": 1426,
+    "fft_and_power_unchanged": true
+  }
+]

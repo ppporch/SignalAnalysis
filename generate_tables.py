@@ -47,13 +47,12 @@ def generate():
         for _ in range(255):put('x(0d128) next(point)')
         put('x(0d128) next(parameter)')
     def horizontal(y):
-        put('scale(2) intensity(2) lpoff next(point)')
+        put('scale(0) intensity(2) lpoff next(point)')
         put(f'y(0d{y}) next(point)')
         put('x(0d128) next(vector)')
-        # Spacing 4: 768 pixels = 4*(63+63+63+3). Short BRM counts
-        # are faster than unit-spaced axes; the faint baseline becomes dotted.
-        for _ in range(3): put('visible deltax(0d63)')
-        put('visible deltax(0d3) end')
+        # Full-resolution vectors: 768 = 6*127+6, no dotted guide spacing.
+        for _ in range(6): put('visible deltax(0d127)')
+        put('visible deltax(0d6) end')
     label(128,980,'PDP-1 SIGNAL ANALYZER',1)
     label(128,930,'SIGNAL / 4096 SAMPLES PER SECOND')
     label(128,390,'S1 RUN   S2 NEXT   S3 GAIN')

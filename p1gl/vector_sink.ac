@@ -1,0 +1,192 @@
+// Non-owning, unit-spaced native vector emitter for embedded display builders.
+// Define P1GL_VECTOR_EMIT as an AC-word sink before including this file.
+// jsp p1gl_vector; inputs p1gl_vdx/p1gl_vdy in -1023..1023, p1gl_vtail 0/END.
+// Display must already be in VECTOR mode at scale zero. Emits <=16 words;
+// END appears only on the last word if requested. No IOTs, no list ownership.
+// AC/IO and scratch clobbered; same-bank DAP linkage; non-reentrant.
+#ifndef P1GL_VECTOR_SINK
+#define P1GL_VECTOR_SINK
+#ifndef P1GL_VECTOR_EMIT
+#error "Define P1GL_VECTOR_EMIT as a native-word output sink"
+#endif
+#include "type340.ah"
+p1gl_vector,
+        dap pvs_return
+        dzm p1gl_vfault
+        dzm p1gl_vcount
+        dzm pvs_depth
+        dzm pvs_flags
+        lac p1gl_vtail
+        and [0377777]
+        sza
+        jmp pvs_bad
+        lac p1gl_vdx
+        add [0]             // canonicalize negative zero
+        spa
+        jmp pvs_negative_x
+        jmp pvs_save_x
+pvs_negative_x,
+        cma
+        dac pvs_x
+        lac [0200]
+        dac pvs_flags
+        lac pvs_x
+pvs_save_x,
+        dac pvs_x
+        sub [0d1023]
+        sma sza
+        jmp pvs_bad
+        lac p1gl_vdy
+        add [0]
+        spa
+        jmp pvs_negative_y
+        jmp pvs_save_y
+pvs_negative_y,
+        cma
+        dac pvs_y
+        lac pvs_flags
+        ior [0100000]
+        dac pvs_flags
+        lac pvs_y
+pvs_save_y,
+        dac pvs_y
+        sub [0d1023]
+        sma sza
+        jmp pvs_bad
+        lac pvs_x
+        sza i
+        jmp pvs_vertical
+        lac pvs_y
+        sza i
+        jmp pvs_horizontal
+pvs_split,
+        lac pvs_x
+        sub [0d127]
+        sma sza
+        jmp pvs_push
+        lac pvs_y
+        sub [0d127]
+        sma sza
+        jmp pvs_push
+        lac pvs_y
+        sal 8s
+        ior pvs_x
+        ior pvs_flags
+        ior [T_VISIBLE]
+        dac pvs_word
+        lac pvs_depth
+        sza
+        jmp pvs_leaf_output
+        lac pvs_word
+        ior p1gl_vtail
+        dac pvs_word
+pvs_leaf_output,
+        jsp pvs_output
+        lac pvs_depth
+        sza i
+        jmp pvs_return
+        sub [1]
+        dac pvs_depth
+        add [pvs_stack_x]
+        dac pvs_pointer
+        lac i pvs_pointer
+        dac pvs_x
+        lac pvs_depth
+        add [pvs_stack_y]
+        dac pvs_pointer
+        lac i pvs_pointer
+        dac pvs_y
+        jmp pvs_split
+pvs_push,
+        lac pvs_x
+        sar 1s
+        dac pvs_half_x
+        lac pvs_y
+        sar 1s
+        dac pvs_half_y
+        lac pvs_depth
+        add [pvs_stack_x]
+        dac pvs_pointer
+        lac pvs_x
+        sub pvs_half_x
+        dac i pvs_pointer
+        lac pvs_depth
+        add [pvs_stack_y]
+        dac pvs_pointer
+        lac pvs_y
+        sub pvs_half_y
+        dac i pvs_pointer
+        idx pvs_depth
+        lac pvs_half_x
+        dac pvs_x
+        lac pvs_half_y
+        dac pvs_y
+        jmp pvs_split
+
+// Axial vectors use greedy 127-unit chunks: a 256-pixel spectrum bar
+// is 127+127+2, avoiding a fourth command and preserving buffer bounds.
+pvs_vertical,
+        lac pvs_y
+        sub [0d127]
+        sma sza
+        jmp pvs_vertical_more
+        lac pvs_y
+        sal 8s
+        ior pvs_flags
+        ior [T_VISIBLE]
+        ior p1gl_vtail
+        dac pvs_word
+        jsp pvs_output
+        jmp pvs_return
+pvs_vertical_more,
+        dac pvs_y
+        lac [T_VISIBLE | (0d127 << 0d8)]
+        ior pvs_flags
+        dac pvs_word
+        jsp pvs_output
+        jmp pvs_vertical
+pvs_horizontal,
+        lac pvs_x
+        sub [0d127]
+        sma sza
+        jmp pvs_horizontal_more
+        lac pvs_x
+        ior pvs_flags
+        ior [T_VISIBLE]
+        ior p1gl_vtail
+        dac pvs_word
+        jsp pvs_output
+        jmp pvs_return
+pvs_horizontal_more,
+        dac pvs_x
+        lac [T_VISIBLE | 0d127]
+        ior pvs_flags
+        dac pvs_word
+        jsp pvs_output
+        jmp pvs_horizontal
+pvs_output,
+        dap pvs_output_return
+        lac pvs_word
+        P1GL_VECTOR_EMIT
+        idx p1gl_vcount
+pvs_output_return, jmp .
+pvs_bad,
+        law 1
+        dac p1gl_vfault
+pvs_return, jmp .
+p1gl_vdx, 0
+p1gl_vdy, 0
+p1gl_vtail, 0
+p1gl_vfault, 0
+p1gl_vcount, 0
+pvs_depth, 0
+pvs_x, 0
+pvs_y, 0
+pvs_flags, 0
+pvs_word, 0
+pvs_half_x, 0
+pvs_half_y, 0
+pvs_pointer, 0
+pvs_stack_x, 0; 0; 0; 0
+pvs_stack_y, 0; 0; 0; 0
+#endif
