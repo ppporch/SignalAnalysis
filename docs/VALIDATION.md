@@ -138,3 +138,31 @@ Next session: consider P1GL vector-stroke text for the tape picker title,
 buttons and filenames. This is deferred design work; the current picker
 continues to use native character mode. Check field/list space before
 choosing font storage, since the full-size sample RAM fields are occupied.
+
+## Vector-stroke file picker (20 November 2026)
+
+Picker labels, filenames, selection marker and errors now use the P1GL
+Hershey face as unit-spaced native vectors, with 24-pixel cells and 28-pixel
+capitals. All 64 SIXBIT characters are covered. Glyph streams use 642 words
+in spare field-4 space. The modal scene uses tape mode's idle field-3 drum
+cache, retaining both analysis lists for Cancel and all eleven sample fields.
+
+The complete regression suite and 146-frame Apollo tape oracle passed.
+The real isolated Type 550 picker tests cover held presses, Cancel with
+unchanged recording RAM, TWOTONE load and FFT oracle, eleven-file pagination,
+nine-character filenames, invalid-file recovery and immutable tape images.
+A direct CPU renderer test covers all SIXBIT characters and eight worst-case
+nine-character names, including selection/error labels; it uses at most
+3,552 of the 4,096 modal words. Every visible segment has unit spacing and
+valid coordinates; pen-sensitive geometry stays inside its row/button area.
+Analysis lists, sample/power and font/loader memory are unchanged by drawing.
+See validation/picker-vector.json.
+
+The live display was inspected with all three tape directory entries visible.
+Mouse clicks on the vector TWOTONE label selected it; the vector LOAD button
+read 16/16 blocks and analysis resumed with the expected 512/1024 CPS peaks,
+fault 0 and overflow 0. All 4,096 loaded sample words matched the calibration
+drum. Reopening and clicking vector CANCEL returned to TWOTONE with every
+sample word preserved. The picker was reopened for Phillip to inspect.
+The status record is validation/picker-vector-live.json; the captured selected
+scene is file-picker-vector.png. The installed package integrity check passed.

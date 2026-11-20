@@ -1,0 +1,14 @@
+[
+  {
+    "words": 1834,
+    "vectors": 867,
+    "pen_vectors": 553,
+    "case": "all_sixbit"
+  },
+  {
+    "words": 3552,
+    "vectors": 2431,
+    "pen_vectors": 2117,
+    "case": "worst_names"
+  }
+]

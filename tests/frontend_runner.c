@@ -87,7 +87,7 @@ void dynamicIotProcessorDoPoll(PDP1 *p)
 #endif
     if (penScript) {
         if (penHolding && p->simtime>=penUntil) { penHolding=0;penNext(p); }
-        if (!penPending && (lastDisplay==010400 || (lastDisplay>=020000 && lastDisplay<030000)) && p->simtime>=penDue &&
+        if (!penPending && (lastDisplay==030000 || (lastDisplay>=020000 && lastDisplay<030000)) && p->simtime>=penDue &&
             (penHolding || (penReady && p->core[penAddress]==penExpected))) {
             if (penX==2048) { penNext(p);return; }
             if (!penHolding) { penHolding=1;penUntil=p->simtime+(uint64_t)penHold*1000000; }

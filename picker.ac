@@ -82,7 +82,7 @@ p_nextslot,idx p_slot
 p_mount_error,dac p_error
 p_redraw,jsp p_stop
         jsp p_draw
-        lac [directory:1]
+        lac [cache:3]
         dac display_go
         jsp p_start
         law 1
@@ -313,16 +313,27 @@ p_start,dap p_startret
         esm
         jmp i p_startret
 
-// Build a bounded modal scene in directory[0..511], unused by tape acquisition.
-// Every emit checks its limit; no active display list is modified.
+// Tape acquisition keeps samples in fields 5..15, so field 3's drum cache
+// is free for a modal vector scene. The two analysis lists remain intact for
+// Cancel. Build only with the beam stopped and sequence breaks disabled.
 p_draw,dap p_drawret
-        lac [directory:1]
+        lac [cache:3]
         dac p_out
+        dzm pv_pen
+        lac [0d128]
+        dac pv_x
+        lac [0d950]
+        dac pv_y
         law p_heading
-        dac p_src
-        lac [p_heading_end-p_heading]
-        dac p_len
-        jsp p_copy
+        dac pv_src
+        jsp pv_string
+        lac [0d128]
+        dac pv_x
+        lac [0d900]
+        dac pv_y
+        law p_hint
+        dac pv_src
+        jsp pv_string
         dzm p_rowindex
         lac [0d820]
         dac p_rowy
@@ -334,24 +345,18 @@ p_drawrow,lac p_page
         lac p_page
         add p_rowindex
         jda p_unpack
-        lac [scale(2) intensity(4) lpon next(point)]
-        jda p_emit
+        lac [04000]              // light pen enabled for filenames
+        dac pv_pen
+        lac [0d180]
+        dac pv_x
         lac p_rowy
-        ior [y(0) next(point)]
-        jda p_emit
-        lac [x(0d180) next(parameter)]
-        jda p_emit
+        dac pv_y
         law p_chars
         dac p_ptr
         law i 0d9
         dac p_left
-p_drawname,lac [next(character)]
-        jda p_emit
-        lac i p_ptr
-        add [picker_glyphs]
-        dac p_glyph
-        lac i p_glyph
-        jda p_emit
+p_drawname,lac i p_ptr
+        jda pv_char
         idx p_ptr
         isp p_left
         jmp p_drawname
@@ -360,42 +365,59 @@ p_drawname,lac [next(character)]
         add [1]
         sas p_selected
         jmp p_drawnext
-        lac [scale(2) intensity(4) lpoff next(point)]
-        jda p_emit
-        lac p_rowy
-        ior [y(0) next(point)]
-        jda p_emit
-        lac [x(0d128) next(character)]
-        jda p_emit
-        lac p_marker
-        jda p_emit
+        dzm pv_pen
+        lac [0d128]
+        dac pv_x
+        lac [0d30]              // SIXBIT '>'
+        jda pv_char
 p_drawnext,lac p_rowy
         sub [0d64]
         dac p_rowy
         idx p_rowindex
         sas [0d8]
         jmp p_drawrow
-p_drawbuttons,law p_buttons
-        dac p_src
-        lac [p_buttons_end-p_buttons]
-        dac p_len
-        jsp p_copy
+p_drawbuttons,lac [04000]
+        dac pv_pen
+        lac [0d180]
+        dac pv_y
+        lac [0d128]
+        dac pv_x
+        law p_prevtext
+        dac pv_src
+        jsp pv_string
+        lac [0d340]
+        dac pv_x
+        law p_nexttext
+        dac pv_src
+        jsp pv_string
+        lac [0d560]
+        dac pv_x
+        law p_loadtext
+        dac pv_src
+        jsp pv_string
         lac p_error
         sza i
         jmp p_drawcancel
+        dzm pv_pen
+        lac [0d128]
+        dac pv_x
+        lac [0d280]
+        dac pv_y
         law p_errortext
-        dac p_src
-        lac [p_errortext_end-p_errortext]
-        dac p_len
-        jsp p_copy
+        dac pv_src
+        jsp pv_string
 p_drawcancel,lac p_invalid
         sza
         jmp p_drawend
+        lac [04000]
+        dac pv_pen
+        lac [0d760]
+        dac pv_x
+        lac [0d180]
+        dac pv_y
         law p_canceltext
-        dac p_src
-        lac [p_canceltext_end-p_canceltext]
-        dac p_len
-        jsp p_copy
+        dac pv_src
+        jsp pv_string
 p_drawend,lac [scale(0) lpoff next(point)]
         jda p_emit
         law i 0d128
@@ -409,22 +431,57 @@ p_pace,lac [x(0d128) next(point)]
         lac [lpoff halt interrupt]
         jda p_emit
         jmp i p_drawret
-p_copy,dap p_copyret
-p_copyloop,lac i p_src
+
+// The P1GL Hershey face is compiled to native unit-spaced glyph streams in
+// field 4. Each stream starts at the current baseline and ends in parameter
+// mode. Keep explicit positions per glyph; glyph advance is a fixed 24 pixels.
+pv_string,dap pv_stringret
+pv_stringloop,lac i pv_src
+        sma
+        jmp pv_stringchar
+        jmp i pv_stringret
+pv_stringchar,jda pv_char
+        idx pv_src
+        jmp pv_stringloop
+pv_char,0
+        dap pv_charret
+        lac pv_char
+        and [077]
+        add [picker_vfont:4]
+        dac pv_ptr
+        eem
+        lac i pv_ptr
+        lem
+        dac pv_ptr
+        lac [scale(0) intensity(4) lpoff next(point)]
+        ior pv_pen
         jda p_emit
-        idx p_src
-        lac p_len
-        sub [1]
-        dac p_len
-        sza
-        jmp p_copyloop
-        jmp i p_copyret
+        lac pv_y
+        ior [y(0) next(point)]
+        jda p_emit
+        lac pv_x
+        ior [next(vector)]
+        jda p_emit
+pv_copyglyph,eem
+        lac i pv_ptr
+        lem
+        dac pv_word
+        jda p_emit
+        idx pv_ptr
+        lac pv_word
+        and [0400000]
+        sza i
+        jmp pv_copyglyph
+        lac pv_x
+        add [0d24]
+        dac pv_x
+        jmp i pv_charret
 p_emit,0
         dap p_emitret
         lac p_emit
         dac p_emitword
         lac p_out
-        sub [011400]          // directory is 010400; 512-word workspace ends here
+        sub [040000]          // exclusive end of the tape-only field-3 modal list
         sma
         jmp p_bounds
         lac p_emitword
@@ -471,7 +528,14 @@ p_pressret,0
 p_stopret,0
 p_startret,0
 p_drawret,0
-p_copyret,0
+pv_stringret,0
+pv_charret,0
+pv_src,0
+pv_x,0
+pv_y,0
+pv_pen,0
+pv_ptr,0
+pv_word,0
 p_emitret,0
 p_unpackret,0
 p_modal,0
@@ -498,8 +562,6 @@ p_gap,0
 p_x,0
 p_y,0
 p_out,0
-p_src,0
-p_len,0
 p_emitword,0
 p_nameptr,0
 p_charptr,0
@@ -515,42 +577,109 @@ p_chars,
 p_names,
         table 0d93,0
 
-p_marker,
-        type340 "\U>"
 p_heading,
-        scale(2) intensity(4) lpoff next(point)
-        y(0d950) next(point)
-        x(0d128) next(character)
-        type340 "\USELECT TAPE FILE"
-        scale(1) intensity(4) lpoff next(point)
-        y(0d900) next(point)
-        x(0d128) next(character)
-        type340 "\USELECT A NAME, THEN LOAD"
-p_heading_end,
-p_buttons,
-        scale(2) intensity(4) lpon next(point)
-        y(0d180) next(point)
-        x(0d128) next(character)
-        type340 "\UPREV"
-        scale(2) intensity(4) lpon next(point)
-        y(0d180) next(point)
-        x(0d340) next(character)
-        type340 "\UNEXT"
-        scale(2) intensity(4) lpon next(point)
-        y(0d180) next(point)
-        x(0d560) next(character)
-        type340 "\ULOAD"
-p_buttons_end,
+        0d51
+        0d37
+        0d44
+        0d37
+        0d35
+        0d52
+        0d0
+        0d52
+        0d33
+        0d48
+        0d37
+        0d0
+        0d38
+        0d41
+        0d44
+        0d37
+        -1
+p_hint,
+        0d51
+        0d37
+        0d44
+        0d37
+        0d35
+        0d52
+        0d0
+        0d33
+        0d0
+        0d46
+        0d33
+        0d45
+        0d37
+        0d12
+        0d0
+        0d52
+        0d40
+        0d37
+        0d46
+        0d0
+        0d44
+        0d47
+        0d33
+        0d36
+        -1
+p_prevtext,
+        0d48
+        0d50
+        0d37
+        0d54
+        -1
+p_nexttext,
+        0d46
+        0d37
+        0d56
+        0d52
+        -1
+p_loadtext,
+        0d44
+        0d47
+        0d33
+        0d36
+        -1
 p_canceltext,
-        scale(2) intensity(4) lpon next(point)
-        y(0d180) next(point)
-        x(0d760) next(character)
-        type340 "\UCANCEL"
-p_canceltext_end,
+        0d35
+        0d33
+        0d46
+        0d35
+        0d37
+        0d44
+        -1
 p_errortext,
-        scale(1) intensity(4) lpoff next(point)
-        y(0d280) next(point)
-        x(0d128) next(character)
-        type340 "\ULOAD FAILED - SELECT ANOTHER FILE"
-p_errortext_end,
+        0d44
+        0d47
+        0d33
+        0d36
+        0d0
+        0d38
+        0d33
+        0d41
+        0d44
+        0d37
+        0d36
+        0d0
+        0d13
+        0d0
+        0d51
+        0d37
+        0d44
+        0d37
+        0d35
+        0d52
+        0d0
+        0d33
+        0d46
+        0d47
+        0d52
+        0d40
+        0d37
+        0d50
+        0d0
+        0d38
+        0d41
+        0d44
+        0d37
+        -1
 #include "generated/picker-glyphs.ac"

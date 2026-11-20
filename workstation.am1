@@ -200,5 +200,6 @@ source_mode,
 0200/
 #include "tape-loader.ac"
 constants
-assert . <= 010000, "Microtape loader exceeds field 4"
+#include "generated/picker-font.ac"
+assert . <= 010000, "Microtape loader and picker font exceed field 4"
 start go:0

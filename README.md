@@ -16,7 +16,7 @@ The PDP-1 performs the FFT and power calculation. Host tools prepare sample reco
 - Interrupt-driven display refresh with BBN millisecond-clock measurements.
 - Checksummed Type 23 drum acquisition with bounded DMA requests.
 - Named Microtape recordings, loaded read-only into extended RAM before analysis.
-- On-screen LOAD FILE button, a paged tape directory, and runtime recording selection without rebuilding.
+- On-screen LOAD FILE button, a paged tape directory with P1GL/Hershey vector-stroke text, and runtime recording selection without rebuilding.
 - A rotating loading indicator that runs during blocking tape seeks, plus a count of completed data blocks.
 - WAV preparation with channel selection, anti-alias resampling and explicit gain.
 - Preassembled programs, complete station source, sample media and optional development tests.

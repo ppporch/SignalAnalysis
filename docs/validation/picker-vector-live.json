@@ -1,0 +1,109 @@
+{
+  "load": {
+    "running": true,
+    "powered_on": true,
+    "pc": "014553",
+    "sense_switches_octal": "50",
+    "done": 1,
+    "fft_overflows": 0,
+    "fault": 0,
+    "track": 1,
+    "frame": 14,
+    "published_frames": 14,
+    "refresh_starts": 414,
+    "source": "tape",
+    "tape_stage": 9,
+    "tape_status": 0,
+    "tape_read_retries": 1,
+    "tape_data_blocks": {
+      "read": 16,
+      "total": 16
+    },
+    "tape_filename": "TWOTONE",
+    "file_picker": {
+      "p_modal": 0,
+      "p_count": 3,
+      "p_page": 0,
+      "p_selected": 2,
+      "p_error": 0,
+      "p_invalid": 0
+    },
+    "display_gain": 64,
+    "display_timing_ms": {
+      "last": 41,
+      "min": 13,
+      "max": 47,
+      "over_25ms": 2747,
+      "completed_passes": 3807
+    },
+    "active_list": "024000",
+    "largest_bins": [
+      {
+        "bin": 32,
+        "cps": 512,
+        "power_integer": 268402689
+      },
+      {
+        "bin": 64,
+        "cps": 1024,
+        "power_integer": 67108864
+      }
+    ]
+  },
+  "sample_words_verified": 4096,
+  "vector_filename_mouse_selection": true,
+  "vector_load_button": true,
+  "cancel": {
+    "running": true,
+    "powered_on": true,
+    "pc": "000703",
+    "sense_switches_octal": "50",
+    "done": 1,
+    "fft_overflows": 0,
+    "fault": 0,
+    "track": 1,
+    "frame": 15,
+    "published_frames": 15,
+    "refresh_starts": 658,
+    "source": "tape",
+    "tape_stage": 9,
+    "tape_status": 0,
+    "tape_read_retries": 1,
+    "tape_data_blocks": {
+      "read": 0,
+      "total": 0
+    },
+    "tape_filename": "TWOTONE",
+    "file_picker": {
+      "p_modal": 0,
+      "p_count": 3,
+      "p_page": 0,
+      "p_selected": 0,
+      "p_error": 0,
+      "p_invalid": 0
+    },
+    "display_gain": 64,
+    "display_timing_ms": {
+      "last": 42,
+      "min": 13,
+      "max": 47,
+      "over_25ms": 2991,
+      "completed_passes": 4051
+    },
+    "active_list": "020100",
+    "largest_bins": [
+      {
+        "bin": 32,
+        "cps": 512,
+        "power_integer": 268402689
+      },
+      {
+        "bin": 64,
+        "cps": 1024,
+        "power_integer": 67108864
+      }
+    ]
+  },
+  "cancel_sample_words_verified": 4096,
+  "vector_cancel_button": true
+}

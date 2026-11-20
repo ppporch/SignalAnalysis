@@ -69,3 +69,9 @@ Drum/header/DMA/checksum faults 1–5, display edges and list overflow halt the 
 The development suite checks arithmetic against an independent integer model, buffer immutability, all controls, sample/checksum errors, clock wrap, SBS modes and vector endpoints/bounds. `display_cost.py` in the development tests estimates nominal scan cost from the installed emulator's BRM, position and character models; live timing is checked separately. The distribution's `make check` checks package/sample integrity only.
 
 The v4 tape backend feeds the same 256-sample contract into acquisition without changing FFT arithmetic. Microtape loading now uses Bill's filesystem library during startup, then the same acquisition interface reads RAM. See `MICROTAPE.md` for its complete contract. The v5 runtime picker is described in `FILE-PICKER.md`; it uses the native light-pen mechanism directly for dynamically populated names, with all filesystem work in the main loop.
+
+The tape picker uses compiled P1GL/Hershey glyph streams from
+`generated/picker-font.ac` in field 4 (642 words), generated from the bundled
+font and notice under `p1gl/`. `picker.ac` builds its modal list in field 3's
+cache, idle in tape mode; both analysis lists remain untouched for Cancel.
+The picker continues to use the existing pen mailbox and tape loader.
